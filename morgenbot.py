@@ -26,6 +26,7 @@ init_greeting = os.getenv('INIT_GREETING', 'Good morning!')
 start_message = os.getenv('START_MESSAGE', 'What did you work on yesterday? What are you working on today? What, if any, are your blockers?')
 
 giphy = True if os.getenv('GIPHY', 'false').lower() == 'true' else False
+notify_once = True if os.getenv('NOTIFY_ONCE', 'false').lower() == 'true' else False
 maintain_order = True if os.getenv('MAINTAIN_ORDER', 'false').lower() == 'true' else False
 
 commands = ['standup','start','cancel','next','skip','later','table','left','ignore','heed','ignoring','ready','help']
@@ -36,6 +37,18 @@ time = []
 in_progress = False
 current_user = ''
 absent_users = []
+notified_users = set()
+
+def conditional_notify(user):
+    global notified_users
+
+    if notify_once:
+        if user in notifed_users:
+            return user
+        else:
+            notified_users.add(user)
+            return '@%s' % user
+    return '@%s' % user
 
 def post_message(text, attachments=[]):
     slack.chat.post_message(channel     = channel,
@@ -59,11 +72,13 @@ def init():
     global topics
     global time
     global in_progress
+    global notified_users
 
     if len(users) != 0:
         post_message('Looks like we have a standup already in process.')
         return
     users = standup_users()
+    notified_users = set()
     topics = []
     time = []
     in_progress = True
@@ -143,7 +158,7 @@ def next():
         done()
     else:
         current_user = users.pop()
-        post_message('@%s, you\'re up' % current_user)
+        post_message('%s, you\'re up' % conditional_notify(current_user))
 
 def standup_time():
     if len(time) != 2: return
@@ -209,11 +224,11 @@ def ignoring():
         post_message('Here\'s who we\'re ignoring for now: ' + ', '.join(absent_users))
 
 def skip():
-    post_message('Skipping @%s.' % current_user)
+    post_message('Skipping %s.' % conditional_notify(current_user))
     next()
     
 def later():
-    post_message('We\'ll call on @%s later.' % current_user)
+    post_message('We\'ll call on %s later.' % conditional_notify(current_user))
     users.append(current_user)
     next()
 
@@ -273,13 +288,13 @@ def ready(msguser):
     elif msguser in ignore_users:
         post_message('I\'m ignoring you. Try asking my admin to heed you.')
     elif msguser in absent_users:
-        post_message('I\'ll come back to you, @%s' % current_user)
+        post_message('I\'ll come back to you, %s' % conditional_notify(current_user))
         users.append(current_user)
         current_user = msguser
         absent_users.remove(msguser)
         post_message('Welcome back, @%s. We will call on you from now on.' % msguser)
     elif msguser in users:
-        post_message('I\'ll come back to you, @%s' % current_user)
+        post_message('I\'ll come back to you, %s' % conditional_notify(current_user))
         users.append(current_user)
         current_user = msguser
         users.remove(msguser)
