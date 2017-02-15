@@ -27,6 +27,7 @@ start_message = os.getenv('START_MESSAGE', 'What did you work on yesterday? What
 
 giphy = True if os.getenv('GIPHY', 'false').lower() == 'true' else False
 notify_once = True if os.getenv('NOTIFY_ONCE', 'false').lower() == 'true' else False
+notify_channel = True if os.getenv('NOTIFY_CHANNEL', 'true').lower() == 'true' else False
 maintain_order = True if os.getenv('MAINTAIN_ORDER', 'false').lower() == 'true' else False
 
 commands = ['standup','start','cancel','next','skip','later','table','left','ignore','heed','ignoring','ready','help']
@@ -82,7 +83,10 @@ def init():
     topics = []
     time = []
     in_progress = True
-    post_message('%s, @channel! Please type !start when you are ready to stand up.' % init_greeting)
+    if notify_chanel:
+        post_message('%s, @channel! Please type !start when you are ready to stand up.' % init_greeting)
+    else:
+        post_message('%s! Please type !start when you are ready to stand up.' % init_greeting)
 
 def start():
     global time
