@@ -26,6 +26,7 @@ init_greeting = os.getenv('INIT_GREETING', 'Good morning!')
 start_message = os.getenv('START_MESSAGE', 'What did you work on yesterday? What are you working on today? What, if any, are your blockers?')
 
 giphy = True if os.getenv('GIPHY', 'false').lower() == 'true' else False
+maintain_order = True if os.getenv('MAINTAIN_ORDER', 'false').lower() == 'true' else False
 
 commands = ['standup','start','cancel','next','skip','later','table','left','ignore','heed','ignoring','ready','help']
 
@@ -129,7 +130,8 @@ def standup_users():
             active_users.append(user_name)
 
     # don't forget to shuffle so we don't go in the same order every day!
-    random.shuffle(active_users)
+    if not maintain_order:
+        random.shuffle(active_users)
 
     return active_users
 
