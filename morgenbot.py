@@ -39,6 +39,7 @@ in_progress = False
 current_user = ''
 absent_users = []
 notified_users = set()
+active_users = []
 
 def conditional_notify(user):
     global notified_users
@@ -128,6 +129,7 @@ def reset():
 def standup_users():
     global ignore_users
     global absent_users
+    global active_users
 
     ignore_users_array = eval(ignore_users)
 
@@ -140,7 +142,14 @@ def standup_users():
 
     standup_room = slack.channels.info(channel_id).body['channel']
     standup_users = standup_room['members']
-    active_users = []
+
+    if not maintain_order:
+        active_users = []
+    else:
+        for users_id in active_users:
+            if user_id in standup_users:
+                standup_users.remove(user_id)
+        random.shuffle(standup_users)
 
     for user_id in standup_users:
         user_name = slack.users.info(user_id).body['user']['name']
