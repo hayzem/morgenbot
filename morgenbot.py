@@ -10,7 +10,7 @@ import urllib2
 
 from slacker import Slacker
 
-from flask import Flask, request
+from flask import Flask, request, abort
 app = Flask(__name__)
 
 curdir = os.path.dirname(os.path.abspath(__file__))
@@ -45,7 +45,7 @@ def conditional_notify(user):
     global notified_users
 
     if notify_once:
-        if user in notifed_users:
+        if user in notified_users:
             return user
         else:
             notified_users.add(user)
@@ -84,7 +84,7 @@ def init():
     topics = []
     time = []
     in_progress = True
-    if notify_chanel:
+    if notify_channel:
         post_message('%s, @channel! Please type !start when you are ready to stand up.' % init_greeting)
     else:
         post_message('%s! Please type !start when you are ready to stand up.' % init_greeting)
@@ -356,12 +356,12 @@ def help(topic=''):
 def main():
     # ignore message we sent
     msguser = request.form.get("user_name", "").strip()
-    if msguser == username or msguser.lower() == "slackbot": return
+    if msguser == username or msguser.lower() == "slackbot": abort(404)
 
     text = request.form.get("text", "")
 
     match = re.findall(r"^!(\S+)", text)
-    if not match: return
+    if not match: abort(404)
 
     command = match[0]
     args = text[text.find("!%s" % command) + len(command) + 1:]
